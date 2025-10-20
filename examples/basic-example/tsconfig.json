@@ -2,10 +2,11 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "lib": ["ES2020"],
+    "lib": ["ES2020", "dom"],
     "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
+    "strictNullChecks": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -17,13 +18,18 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "jsx": "react-jsx",
     "types": ["node", "jest", "bun"]
   },
   "include": [
     "*.ts",
+    "*.tsx",
     "*.js",
+    "*.jsx",
     "**/*.ts",
-    "**/*.js"
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx"
   ],
   "exclude": [
     "node_modules",
