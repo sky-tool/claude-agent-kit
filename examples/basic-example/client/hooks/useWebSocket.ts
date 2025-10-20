@@ -5,8 +5,11 @@ interface WebSocketMessage {
   [key: string]: any;
 }
 
+import { EnvironmentConfig } from '../config/environment';
+
 interface UseWebSocketOptions {
-  url: string;
+  url?: string;
+  config?: EnvironmentConfig;
   onMessage?: (message: WebSocketMessage) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
@@ -17,6 +20,7 @@ interface UseWebSocketOptions {
 
 export function useWebSocket({
   url,
+  config,
   onMessage,
   onConnect,
   onDisconnect,
@@ -32,7 +36,8 @@ export function useWebSocket({
 
   const connect = useCallback(() => {
     try {
-      const ws = new WebSocket(url);
+      const wsUrl = url || config?.wsUrl || 'ws://localhost:3000/ws';
+      const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -61,6 +66,14 @@ export function useWebSocket({
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
+
+        const wsUrl = url || config?.wsUrl || 'ws://localhost:3000/ws';
+        console.error(`Failed to connect to WebSocket at: ${wsUrl}`);
+        console.error('Please check:');
+        console.error('1. Server is running on the correct port');
+        console.error('2. WebSocket URL is correct for your environment');
+        console.error('3. No firewall blocking the connection');
+
         onError?.(error);
       };
 

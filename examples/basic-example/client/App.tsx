@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ChatInterface } from "./components/chat-interface";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { ScreenshotModeProvider } from "./context/screenshot-mode-context";
+import { getEnvironmentConfig } from "./config/environment";
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState([]);
@@ -10,7 +11,7 @@ const App: React.FC = () => {
 
   // Single WebSocket connection for all components
   const { isConnected, sendMessage } = useWebSocket({
-    url: 'ws://localhost:3000/ws',
+    config: getEnvironmentConfig(),
     onMessage: (message) => {
       switch (message.type) {
         case 'connected':
