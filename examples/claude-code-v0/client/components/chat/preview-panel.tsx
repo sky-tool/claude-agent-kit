@@ -7,6 +7,7 @@ import {
   SandpackCodeEditor,
   SandpackPreview,
   SandpackFileExplorer,
+  useSandpack,
 } from "@codesandbox/sandpack-react";
 import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import {
@@ -32,6 +33,19 @@ type PreviewPanelProps = {
   onStop?: () => void;
   disabledRefresh?: boolean;
 };
+
+// Debug component to monitor Sandpack state
+function SandpackDebugger() {
+  const { sandpack } = useSandpack();
+
+  console.log("Sandpack state:", {
+    error: sandpack.error,
+    status: sandpack.status,
+    files: Object.keys(sandpack.files)
+  });
+
+  return null;
+}
 
 const BASE_SANDBOX_FILES: SandpackFiles = {};
 
@@ -65,23 +79,33 @@ export function PreviewPanel({
       merged[path] = content;
     });
 
+    // Debug: Log actual files received
+    console.log("Available files in workspace:", Object.keys(normalizedFiles));
+
     const hasUserAppJs = Object.prototype.hasOwnProperty.call(
       normalizedFiles,
       "/App.js"
     );
 
+    console.log("Has user App.js:", hasUserAppJs);
+
     if (!hasUserAppJs) {
+      // Also check for lowercase app.jsx and other variations
       const fallbackAppPath =
         [
+          "/app.jsx",  // Add lowercase version
           "/App.jsx",
           "/App.tsx",
           "/App.ts",
+          "/src/app.jsx",  // Add lowercase version in src
           "/src/App.jsx",
           "/src/App.tsx",
           "/src/App.ts",
         ].find((candidate) =>
           Object.prototype.hasOwnProperty.call(merged, candidate)
         ) ?? null;
+
+      console.log("Found fallback App path:", fallbackAppPath);
 
       if (fallbackAppPath) {
         merged["/App.js"] = {
@@ -91,10 +115,19 @@ export function PreviewPanel({
           )}";`,
           hidden: true,
         };
+        console.log("Created App.js redirect to:", fallbackAppPath);
       } else {
         merged["/App.js"] = {
           code: `export default function App() {
-  return null;
+  return (
+    <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="text-center p-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Claude Code V0</h1>
+        <p className="text-gray-600 mb-4">No application files found.</p>
+        <p className="text-sm text-gray-500">Create an App component to get started.</p>
+      </div>
+    </div>
+  );
 }
 `,
           hidden: true,
@@ -231,12 +264,18 @@ export function PreviewPanel({
         <div className="flex h-full flex-1 overflow-hidden rounded-2xl border border-border/80 bg-background">
           <SandpackProvider
             key={sandpackKey}
-            template="react"
+            template="react-ts"
             files={sandpackFiles}
-            options={{ externalResources: ["https://cdn.tailwindcss.com"] }}
+            options={{
+              externalResources: ["https://cdn.tailwindcss.com"],
+              recompileMode: "immediate",
+              recompileDelay: 300,
+              initMode: "user-visible"
+            }}
             className="flex-1"
             style={{ flex: 1 }}
           >
+            <SandpackDebugger />
             <div className="relative flex h-full w-full">
               <div
                 className={cn(
@@ -244,7 +283,11 @@ export function PreviewPanel({
                   activeTab !== "preview" && "hidden"
                 )}
               >
-                <SandpackPreview style={{ width: "100%", height: "100%" }} />
+                <SandpackPreview
+                  style={{ width: "100%", height: "100%" }}
+                  showRefreshButton={true}
+                  showOpenInCodeSandbox={true}
+                />
               </div>
               {activeTab === "code" && (
                 <SandpackLayout
