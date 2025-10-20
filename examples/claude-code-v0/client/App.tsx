@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ChatInterface } from "./components/chat-interface";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { ScreenshotModeProvider } from "./context/screenshot-mode-context";
+import { getEnvironmentConfig } from "./config/environment";
 import type { ChatSessionState } from "../shared/types/messages";
 
 function createInitialSessionState(): ChatSessionState {
@@ -38,7 +39,8 @@ const App: React.FC = () => {
   const activeSyncCountRef = useRef(0);
 
   const socketUrl = useMemo(() => {
-    const base = "ws://localhost:3000/ws";
+    const envConfig = getEnvironmentConfig();
+    const base = envConfig.wsUrl;
     if (initialSessionId) {
       return `${base}?sessionId=${encodeURIComponent(initialSessionId)}`;
     }
